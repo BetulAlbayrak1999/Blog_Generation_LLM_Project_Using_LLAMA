@@ -5,7 +5,6 @@ from transformers import pipeline
 
 
 
-
 def get_llama_response(input_text, no_words, blog_style):
     """
     Generates a blog post using the Llama-3.2-1B model from Hugging Face.
