@@ -3,6 +3,9 @@ import torch
 from transformers import pipeline
 
 
+
+
+
 def get_llama_response(input_text, no_words, blog_style):
     """
     Generates a blog post using the Llama-3.2-1B model from Hugging Face.
@@ -16,23 +19,39 @@ def get_llama_response(input_text, no_words, blog_style):
 
     """
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+    dtype= torch.float16 if torch.cuda.is_available() else torch.float32
+
     pipe = pipeline(
         "text-generation",
-        model="mistralai/Mistral-7B-Instruct-v0.3",
-        device_map="auto",
-        torch_dtype=torch.float16,
+        model="openai-community/gpt2",
+        device=0,
+        dtype=dtype,
+        pad_token_id=50256
     )
-    
-    # Create the pormpt string
-    prompt = f"Write a blog for a {blog_style} job profile for the topic '{input_text}' within {no_words} words."
 
+    # Create the pormpt string
+    prompt = f"""Write a professional blog post about "{input_text}" for a {blog_style} audience.
+
+            The blog should be approximately {no_words} words and include:
+            - An engaging introduction
+            - Key points and insights
+            - A compelling conclusion
+
+            Blog Post:
+            """
+
+    no_words = int(no_words) if no_words.isdigit() else 500
     # Generate the response
     response = pipe(
         prompt,
         do_sample=True,
         max_new_tokens=no_words + 50,
+        temperature=0.7,
+        top_p=0.9,
         truncation=True,
-        eos_token_id=pipe.tokenizer.eos_token_id,
+        pad_token_id=50256,
     )
 
     # Extract the generation text from the pipeline output and remove the prompt
